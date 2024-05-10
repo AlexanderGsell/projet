@@ -1,7 +1,7 @@
 class IndexCtrl {
   constructor() {
-    // Initialisation ou tout autre traitement nécessaire au chargement du contrôleur
-  }
+    this.serviceHttp = serviceHttp;
+    }
 
   seConnecter() {
     var identifiant = document.getElementById("txtLoginId").value.trim();
@@ -23,9 +23,56 @@ class IndexCtrl {
     window.location.href = 'index2.html';
   }
 
-  voirInfosSuperheros() {
-    chargerSuperhero(chargerSuperheroSuccess, chargerSuperheroError);
+
+ // Méthode pour afficher les détails d'un superhéros
+ showSuperheroDetails(superhero) {
+  // Sélectionner les éléments où afficher les détails
+  const nameElement = document.getElementById("superhero-name");
+  const descriptionElement = document.getElementById("superhero-description");
+  const powersElement = document.getElementById("superhero-powers");
+  const imageElement = document.getElementById("superhero-image");
+
+  // Insérer les données du superhéros dans les éléments correspondants
+  nameElement.textContent = superhero.name;
+  descriptionElement.textContent = superhero.description;
+  powersElement.textContent = "Pouvoirs : " + superhero.powers.join(", ");
+  imageElement.src = superhero.image;
+}
+
+// Méthode de succès pour charger les superhéros
+async chargerSuperheroSuccess(superheroes) {
+  // Sélectionner la liste des superhéros
+  const listElement = document.getElementById("superheroes-list");
+
+  // Vider la liste existante pour éviter les doublons
+  listElement.innerHTML = "";
+
+  // Générer la liste des superhéros
+  superheroes.forEach(superhero => {
+    const listItem = document.createElement("li");
+    listItem.textContent = superhero.name;
+    listItem.addEventListener("click", () => this.showSuperheroDetails(superhero));
+    listElement.appendChild(listItem);
+  });
+}
+
+// Méthode pour charger les superhéros et afficher leurs détails
+async voirInfosSuperheros() {
+  try {
+    const superheroes = await this.serviceHttp.chargerSuperhero();
+    this.chargerSuperheroSuccess(superheroes);
+  } catch (error) {
+    console.error("Erreur lors du chargement des superhéros :", error);
   }
+}
+
+
+// Fonction d'erreur pour charger les superhéros
+ chargerSuperheroError(error) {
+  console.error("Erreur lors du chargement des superhéros :", error);
+}
+
+
 
   ajouterSuperhero(nom, description, fkPlanete) {
     var nouveauSuperhero = new Superhero();
@@ -66,6 +113,7 @@ class IndexCtrl {
 
   deconnecterAvecSucces(data) {
     console.log("Vous êtes déconnecté avec succès.");
+    window.location.href = 'index.html';
   }
 
   gestionErreur() {
@@ -82,6 +130,14 @@ $(document).ready(function () {
   $("#btnSeConnecter").click(function () {
     indexCtrl.seConnecter();
   });
+  $("#btnSedeconnecter").click(function () {
+    indexCtrl.seDeconnecter();
+  });
+});
+// Création d'une instance de indexCtrl lorsque la page est chargée
+document.addEventListener("DOMContentLoaded", function() {
+  const serviceHttp = new ServiceHttp(); // Remplacez ServiceHttp par le nom de votre service HTTP
+  new indexCtrl(serviceHttp);
 });
 
 
