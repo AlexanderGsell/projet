@@ -1,135 +1,89 @@
-class indexCtrl {
-
-  constructor(serviceHttp) {
-      this.serviceHttp = serviceHttp;
+class IndexCtrl {
+  constructor() {
+    // Initialisation ou tout autre traitement nécessaire au chargement du contrôleur
   }
 
-  async onSubmit(event) {
-  event.preventDefault(); // Empêche la soumission du formulaire
-  const username = document.querySelector('#username');
-  const password = document.querySelector('#password');
-  const loginError = document.querySelector('#loginError');
-  console.log("bouton appuyé");
-  const result = await this.serviceHttp.login(username.value, password.value);
-  if (result.success) {
-      window.location.href = 'index2.html';
-  } else {
-      username.style.borderColor = 'red';
-      password.style.borderColor = 'red';
-      loginError.textContent = 'Les identifiants ne sont pas corrects';
+  seConnecter() {
+    var identifiant = document.getElementById("txtLoginId").value.trim();
+  var motDePasse = document.getElementById("txtLoginPw").value.trim();
+
+  // Vérifier si les champs sont vides
+  if (identifiant === "" || motDePasse === "") {
+    alert("Veuillez saisir un identifiant et un mot de passe.");
+    return; // Arrêter l'exécution si les champs sont vides
   }
-  return false; // Pour empêcher la soumission du formulaire
+
+  // Continuer avec la connexion si les champs ne sont pas vides
+  console.log("Connection");
+  login(identifiant, motDePasse, this.connecterAvecSucces, this.gestionErreur);
 }
 
+  connecterAvecSucces(data) {
+    console.log("Vous êtes connecté avec succès.");
+    window.location.href = 'index2.html';
+  }
+
+  voirInfosSuperheros() {
+    chargerSuperhero(chargerSuperheroSuccess, chargerSuperheroError);
+  }
+
+  ajouterSuperhero(nom, description, fkPlanete) {
+    var nouveauSuperhero = new Superhero();
+    nouveauSuperhero.setNom(nom);
+    nouveauSuperhero.setDescription(description);
+    nouveauSuperhero.setFKPlanete(fkPlanete);
+    ajouterSuperheroDB(nouveauSuperhero, this.ajoutSuperheroAvecSucces, this.gestionErreur);
+  }
+
+  ajoutSuperheroAvecSucces(data) {
+    console.log("Superhéros ajouté avec succès.");
+    
+  }
+
+  supprimerSuperhero(pkSuperhero) {
+    supprimerSuperheroDB(pkSuperhero, this.supprimerSuperheroSuccess, this.gestionErreur);
+  }
+
+  supprimerSuperheroSuccess(data) {
+    console.log("Superhéros supprimé avec succès.");
+  }
+
+  modifierSuperhero(pkSuperhero, nouveauNom, nouvelleDescription, nouvelleFKPlanete) {
+    var superheroModifie = new Superhero();
+    superheroModifie.setNom(nouveauNom);
+    superheroModifie.setDescription(nouvelleDescription);
+    superheroModifie.setFKPlanete(nouvelleFKPlanete);
+    modifierSuperheroDB(pkSuperhero, superheroModifie, this.modificationSuperheroSuccess, this.gestionErreur);
+  }
+
+  modificationSuperheroSuccess(data) {
+    console.log("Superhéros modifié avec succès.");
+  }
+
+  seDeconnecter() {
+    deconnection(this.deconnecterAvecSucces, this.gestionErreur);
+  }
+
+  deconnecterAvecSucces(data) {
+    console.log("Vous êtes déconnecté avec succès.");
+  }
+
+  gestionErreur() {
+    console.log("Une erreur s'est produite.");
+    alert("Une erreur s'est produite.");
+  }
 }
-
-
-function chargerSuperheroSuccess(data, text, jqXHR) {
-  var cmbSuperhero = document.getElementById("cmbSuperhero");
-  $(data).find("superhero").each(function () {
-    var superhero = new Superhero();
-    superhero.setNom($(this).find("nom").text());
-    superhero.setPk($(this).find("pkSuperhero").text());
-    superhero.setDescription($(this).find("description").text());
-    superhero.setFKPlanete($(this).find("FK_Planete").text());
-    cmbSuperhero.options[cmbSuperhero.options.length] = new Option(superhero, JSON.stringify(superhero));
-  });
-}
-
-function chargerSuperheroError(request, status, error) {
-  alert("Erreur lors de la lecture des superheros: " + error);
-}
-
-function chargerUtilisateurError(request, status, error) {
-  alert("Erreur lors de la lecture des Utilisateurs: " + error);
-}
-
-function chargerUtilisateursSuccess(data) {
-  console.log("La liste d'utilisateur a bien été envoyée");
-  var nameTab = [];
-  $(data).find("utilisateur").each(function () {
-    var utilisateur = new Utilisateur();
-    utilisateur.setNom($(this).find("Nom").text());
-    utilisateur.setPkUtilisateur($(this).find("PK_Utilisateur").text());
-    nameTab.push(utilisateur.getNom());
-  });
-}
-
-function preDelUtilisateursSuccess(data) {
-  console.log("recherche du userDel");
-  $(data).find("utilisateur").each(function () {
-    if ($(this).find("nom").text() == document.getElementById("txtLoginId").value) {
-      detruireUtilisateur($(this).find("pk_utilisateur").text(), detruireUtilisateurSuccess, callbackError);
-    }
-  });
-}
-
-function updateSuccess(data) {
-  console.log("Votre compte a été modifié");
-  alert("Votre compte a été modifié avec succès!");
-}
-
-function detruireUtilisateurSuccess() {
-  console.log("L'utilisateur a été retiré de la DB");
-  chargerUtilisateurs(chargerUtilisateursSuccess, callbackError);
-}
-
-function connectSuccess(data) {
-  console.log("Vous êtes connecté");
-}
-
-function créerUtilisateurSuccess(data) {
-  console.log("La création d'un utilisateur a réussi");
-  alert("Votre utilisateur a été créé, veuillez vous connecter!");
-}
-
-function deconnectSuccess(data) {
-  console.log("Vous êtes déconnecté");
-}
-
-function callbackError() {
-  console.log("La requête n'a pas abouti");
-  alert("La requête n'a pas abouti");
-}
-
-function connect() {
-  login(
-    document.getElementById("txtLoginId").value,
-    document.getElementById("txtLoginPw").value,
-    connectSuccess,
-    callbackError
-  );
-}
-
-function nouveau() {
-  créerUtilisateur(
-    document.getElementById("txtLoginId").value,
-    document.getElementById("txtLoginPw").value,
-    créerUtilisateurSuccess,
-    callbackError
-  );
-}
-
-function suppr() {
-  chargerUtilisateurs(preDelUtilisateursSuccess, callbackError);
-}
-
-function deconnection() {
-  deconnection(
-    deconnectSuccess,
-    callbackError
-  );
-}
-
-
 
 $(document).ready(function () {
-  $.getScript("javascripts/helpers/dateHelper.js");
-  $.getScript("javascripts/beans/superhero.js");
-  $.getScript("javascripts/beans/utilisateur.js");
-  $.getScript("javascripts/services/servicesHttp.js", function () {
-    console.log("servicesHttp.js chargé !");
-    chargerSuperhero(chargerSuperheroSuccess, chargerSuperheroError);
-    chargerUtilisateurs(chargerUtilisateursSuccess, chargerUtilisateurError);
+  // Créer une instance de la classe IndexCtrl
+  var indexCtrl = new IndexCtrl();
+
+  // Ajouter un écouteur d'événements au bouton "Se connecter"
+  $("#btnSeConnecter").click(function () {
+    indexCtrl.seConnecter();
   });
 });
+
+
+// Utilisation de la classe
+var indexCtrl = new IndexCtrl();
